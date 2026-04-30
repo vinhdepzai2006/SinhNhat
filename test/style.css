@@ -1,0 +1,13 @@
+/* Giữ nguyên phần body và stage cũ, chỉ sửa phần canvas */
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.content-overlay {
+    display: none; /* Ẩn đi vì đã vẽ trực tiếp lên canvas cho đẹp */
+}

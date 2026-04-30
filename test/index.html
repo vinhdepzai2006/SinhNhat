@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Happy Birthday Hà Tâm</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <audio id="bgMusic" src="https://www.bensound.com/bensound-music/bensound-happybirthday.mp3" loop></audio>
+
+    <div id="stage1" class="stage active">
+        <canvas id="matrixCanvas"></canvas>
+    </div>
+
+    <div id="stage3" class="stage">
+        <div class="cake-section">
+            <img src="https://i.ibb.co/LzNfX6Q/banh-hello-kitty.png" id="cakeImg" class="cake-img">
+            <div class="flame" id="flame"></div>
+            <p class="instruction">Bấm vào trái tim để thổi nến ❤️</p>
+            <div class="heart-btn" onclick="blowCandle()">❤️</div>
+        </div>
+    </div>
+
+    <div id="stage4" class="stage">
+        <div id="heartContainer"></div>
+        <div class="final-text">YÊU TÂM RẤT NHIỀU! ❤️</div>
+    </div>
+
+    <script src="script.js"></script>
+    
+</body>
+</html>

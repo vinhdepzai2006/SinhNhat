@@ -1,0 +1,304 @@
+/* ==========================================================
+   style.css – Happy Birthday Hà Tâm
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Nunito:wght@400;700;900&display=swap');
+
+/* ----------------------------------------------------------
+   RESET & BASE
+   ---------------------------------------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ----------------------------------------------------------
+   SCREEN SYSTEM
+   Tất cả màn hình xếp chồng; chỉ .active mới hiển thị
+   ---------------------------------------------------------- */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.screen.active {
+  display: flex;
+}
+.fade-out {
+  animation: aFadeOut 0.7s ease forwards !important;
+  pointer-events: none;
+}
+@keyframes aFadeOut {
+  to { opacity: 0; }
+}
+
+/* ----------------------------------------------------------
+   MÀN HÌNH 1 – ĐẾM NGƯỢC
+   ---------------------------------------------------------- */
+#countdown-screen {
+  background: #000;
+  z-index: 100;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+#matrixCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ----------------------------------------------------------
+   MÀN HÌNH 2 – TEXT PIXEL
+   ---------------------------------------------------------- */
+#text-screen {
+  background: #000;
+  z-index: 90;
+  flex-direction: column;
+}
+
+#textCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Mỗi dòng chiếm 1/3 chiều cao */
+.word-row {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.word-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 0, 8, 0.45);
+}
+
+/* Canvas vẽ chữ pixel cho mỗi dòng */
+.word-canvas {
+  position: relative;
+  z-index: 5;
+  display: block;
+  /* width/height set by JS */
+}
+
+/* ----------------------------------------------------------
+   MÀN HÌNH 3 – BÁNH SINH NHẬT
+   ---------------------------------------------------------- */
+#cake-screen {
+  background: linear-gradient(135deg, #ffb3d1, #ff69b4 50%, #c71585);
+  z-index: 80;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+
+/* Hạt lấp lánh nền */
+.sp-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sp {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  animation: aSparkle 2s ease-in-out infinite;
+  opacity: 0;
+}
+@keyframes aSparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50%       { opacity: 1; transform: scale(1); }
+}
+
+/* Tim bay lên */
+.fh-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fheart {
+  position: absolute;
+  animation: aFloatUp 4s ease-in infinite;
+  opacity: 0;
+}
+@keyframes aFloatUp {
+  0%   { transform: translateY(0) scale(1);    opacity: 0.85; }
+  100% { transform: translateY(-110vh) scale(0.15); opacity: 0; }
+}
+
+/* Kitty trang trí */
+.kitty-deco {
+  position: absolute;
+  width: 120px;
+  opacity: 0.92;
+  pointer-events: none;
+  border-radius: 8px;
+}
+.kitty-rand {
+  width: 110px;
+}
+.kitty-around {
+  width: 100px;
+  animation: aKittyBounce 2s ease-in-out infinite;
+}
+@keyframes aKittyBounce {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%       { transform: translateX(-50%) scale(1.08) translateY(-6px); }
+}
+/* Kitty trái/phải dùng transform khác nên override riêng */
+.kitty-around[style*="left:10%"],
+.kitty-around[style*="right:10%"] {
+  animation: aKittyBounceV 2s ease-in-out infinite;
+}
+@keyframes aKittyBounceV {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50%       { transform: translateY(-55%) scale(1.08); }
+}
+
+/* Ảnh bánh */
+.cake-img {
+  width: min(430px, 86vw);
+  max-height: 52vh;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 32px rgba(255, 20, 147, 0.55));
+  border-radius: 16px;
+  position: relative;
+  z-index: 5;
+  animation: aCakeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes aCakeIn {
+  from { transform: scale(0.2) translateY(70px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* Nút tim */
+.hbw {
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: aFadeUp 0.8s 0.4s ease both;
+}
+@keyframes aFadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.hbtn {
+  font-size: 66px;
+  cursor: pointer;
+  user-select: none;
+  animation: aHeartbeat 1.1s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px #ff1493);
+}
+@keyframes aHeartbeat {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.22); }
+}
+
+.hlabel {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+/* ----------------------------------------------------------
+   MÀN HÌNH 4 – TRÁI TIM ẢNH
+   ---------------------------------------------------------- */
+#heart-screen {
+  background: linear-gradient(135deg, #ffe0ef, #ffb3d1 45%, #ff69b4);
+  z-index: 70;
+  overflow: hidden;
+}
+
+/* Kitty bắn tên 2 bên */
+.ks {
+  position: absolute;
+  top: 50%;
+  width: 200px;
+  z-index: 10;
+  pointer-events: none;
+}
+.ks.left  { left: 20px;  transform: translateY(-50%); }
+.ks.right { right: 20px; transform: translateY(-50%) scaleX(-1); }
+
+/* Container lưới ảnh hình tim */
+.hc {
+  position: relative;
+  z-index: 5;
+  /* width/height set by JS */
+}
+
+/* Mỗi ô ảnh vuông */
+.hp {
+  position: absolute;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 14px rgba(255, 20, 147, 0.45);
+  background: #ffb3d1;
+  cursor: pointer;
+}
+.hp:hover {
+  transform: scale(1.12) !important;
+  z-index: 20;
+}
+.hp img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ----------------------------------------------------------
+   PARTICLES & CONFETTI
+   ---------------------------------------------------------- */
+.part {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999;
+  animation: aPartFly 1s ease-out forwards;
+}
+@keyframes aPartFly {
+  to { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+.conf {
+  position: fixed;
+  pointer-events: none;
+  z-index: 998;
+  animation: aConfFall 3s ease-in forwards;
+}
+@keyframes aConfFall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* Audio ẩn */
+audio { display: none; }
