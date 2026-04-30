@@ -14,10 +14,6 @@ const CONFIG = {
 
   // =========================================================
   // 📸 ẢNH XẾP THÀNH TRÁI TIM
-  // 👉 Thêm link ảnh vào đây – mỗi ảnh sẽ CHỈ xuất hiện 1 lần
-  //    Trái tim tự điều chỉnh số ô theo số ảnh bạn cung cấp
-  //    (tối thiểu ~20 ảnh để tim trông đầy đẹp, tối đa 56)
-  //    Nếu muốn tim lớn hơn: thêm nhiều ảnh hơn!
   // =========================================================
   photos: [
     'Anh/cpm35 2026-02-10 095249AE25E76F5CE1.jpg',
@@ -83,9 +79,8 @@ const CONFIG = {
     'Anh/instc 2025-10-21 183220.123.jpg',
     'Anh/quality_restoration_20251007233630069.JPEG',
     'Anh/temp_image_458E1221-73EB-4BF0-BFF7-C56A0377142E.JPEG',
-    // 👇 THÊM LINK ẢNH MỚI VÀO ĐÂY (mỗi dòng 1 link, có dấu phẩy cuối):
+    // 👇 THÊM LINK ẢNH MỚI VÀO ĐÂY:
     // 'Anh/IMG_xxxx.jpg',
-    // 'https://example.com/photo.jpg',
   ],
 };
 
@@ -93,15 +88,37 @@ const CONFIG = {
    App – điều phối các phase
    ========================================================== */
 const App = (() => {
-  function switchScreen(hideId, showId, cb) {
+  /**
+   * Chuyển màn hình mượt mà: fade-out → swap → fade-in
+   * duration: ms của mỗi pha (default 600ms)
+   */
+  function switchScreen(hideId, showId, cb, duration = 600) {
     const hide = document.getElementById(hideId);
     const show = document.getElementById(showId);
-    hide.classList.add('fade-out');
+
+    // Fade out màn đang hiện
+    hide.style.transition = `opacity ${duration}ms ease`;
+    hide.style.opacity = '0';
+    hide.style.pointerEvents = 'none';
+
     setTimeout(() => {
-      hide.classList.remove('active', 'fade-out');
+      hide.classList.remove('active');
+      hide.style.cssText = ''; // reset inline styles
+
+      // Hiện màn mới
+      show.style.opacity = '0';
+      show.style.transition = 'none';
       show.classList.add('active');
-      if (cb) cb();
-    }, 750);
+
+      // Kích hoạt reflow rồi fade-in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          show.style.transition = `opacity ${duration}ms ease`;
+          show.style.opacity = '1';
+          if (cb) cb();
+        });
+      });
+    }, duration + 50);
   }
 
   function goHeart() {
@@ -118,6 +135,119 @@ const App = (() => {
   }
 
   return { switchScreen, goHeart };
+})();
+
+/* ==========================================================
+   GiftPhase – màn hình hộp quà (màn hình đầu tiên)
+   ========================================================== */
+const GiftPhase = (() => {
+  let _opened = false;
+
+  // Tạo bong bóng bay lên
+  function spawnBalloons() {
+    const wrap = document.getElementById('balloonWrap');
+    const emojis = ['🎈','🎀','🎊','🎁','💝','🌸','✨','🎉'];
+
+    function spawnOne() {
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      b.style.cssText = [
+        `left:${Math.random() * 100}%`,
+        `animation-duration:${4 + Math.random() * 4}s`,
+        `animation-delay:${Math.random() * 2}s`,
+        `font-size:${clamp(22, Math.random() * 30 + 22, 50)}px`,
+      ].join(';');
+      wrap.appendChild(b);
+      setTimeout(() => b.remove(), 9000);
+    }
+
+    // Spawn ngay một lứa đầu
+    for (let i = 0; i < 12; i++) {
+      setTimeout(spawnOne, Math.random() * 2000);
+    }
+    // Tiếp tục spawn theo interval
+    return setInterval(spawnOne, 700);
+  }
+
+  // Tạo pháo giấy rơi nền
+  function spawnBgConfetti() {
+    const wrap = document.getElementById('confettiWrap');
+    const cols = ['#fff','#ffe0f0','#ffd6e8','#ffaacc','#ff69b4','#fff59d','#b3e5fc','#c8e6c9'];
+
+    for (let i = 0; i < 40; i++) {
+      const c = document.createElement('div');
+      c.className = 'bg-conf';
+      c.style.cssText = [
+        `left:${Math.random() * 100}%`,
+        `background:${cols[Math.floor(Math.random() * cols.length)]}`,
+        `animation-duration:${3 + Math.random() * 4}s`,
+        `animation-delay:${Math.random() * 4}s`,
+        `width:${5 + Math.random() * 7}px`,
+        `height:${5 + Math.random() * 7}px`,
+        `border-radius:${Math.random() > 0.5 ? '50%' : '2px'}`,
+      ].join(';');
+      wrap.appendChild(c);
+    }
+  }
+
+  function clamp(min, val, max) {
+    return Math.min(max, Math.max(min, val));
+  }
+
+  // Hiệu ứng khi ấn hộp quà: nổ pháo rồi chuyển màn
+  function open() {
+    if (_opened) return;
+    _opened = true;
+
+    const wrap = document.getElementById('giftBoxWrap');
+    const label = document.getElementById('giftLabel');
+    const title = document.getElementById('giftTitle');
+
+    // Animate hộp quà khi ấn: bounce nhỏ → nổ ra
+    wrap.style.transition = 'transform 0.1s ease';
+    wrap.style.transform = 'scale(0.88)';
+
+    setTimeout(() => {
+      wrap.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+      wrap.style.transform = 'scale(1.25)';
+
+      // Pháo nổ từ tâm hộp quà
+      const r = wrap.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top  + r.height / 2;
+      Particles.burst(cx, cy, 60);
+      Particles.rain();
+
+      setTimeout(() => {
+        // Nhạc bật TRƯỚC khi chuyển màn (cần gesture của user)
+        document.getElementById('bgMusic').play().catch(() => {});
+
+        // Chuyển sang màn đếm số
+        App.switchScreen('gift-screen', 'countdown-screen', () => {
+          CountdownPhase.init();
+          CountdownPhase.run();
+        }, 700);
+      }, 320);
+    }, 120);
+  }
+
+  function init() {
+    const balloonInterval = spawnBalloons();
+    spawnBgConfetti();
+
+    // Dọn interval khi rời màn
+    const giftScreen = document.getElementById('gift-screen');
+    const observer = new MutationObserver(() => {
+      if (!giftScreen.classList.contains('active')) {
+        clearInterval(balloonInterval);
+        observer.disconnect();
+      }
+    });
+    observer.observe(giftScreen, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  return { init, open };
 })();
 
 /* ==========================================================
@@ -157,19 +287,14 @@ const Matrix = (() => {
 
 /* ==========================================================
    PixelFont – vẽ text lớn bằng các ký tự nhỏ li ti CỐ ĐỊNH
-   Mỗi "pixel" trong bitmap được lấp đầy bằng lưới ký tự nhỏ
-   (stable / không flickering nhờ seed cố định theo từng ký tự)
    ========================================================== */
 const PixelFont = (() => {
 
-  /* Bitmap 7 hàng × 5 cột cho từng ký tự */
   const GLYPHS = {
-    /* Chữ số */
     '0': [[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1]],
     '1': [[0,0,1,0,0],[0,1,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[1,1,1,1,1]],
     '2': [[1,1,1,1,1],[0,0,0,0,1],[0,0,0,0,1],[1,1,1,1,1],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,1,1]],
     '3': [[1,1,1,1,1],[0,0,0,0,1],[0,0,0,0,1],[0,0,1,1,1],[0,0,0,0,1],[0,0,0,0,1],[1,1,1,1,1]],
-    /* Chữ Latin */
     'A': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1]],
     'B': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0]],
     'D': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0]],
@@ -180,19 +305,14 @@ const PixelFont = (() => {
     'R': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]],
     'T': [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
     'Y': [[1,0,0,0,1],[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
-    /* Tiếng Việt có dấu – được thiết kế riêng để phân biệt */
-    // À = A có dấu huyền ` (đi từ phải xuống trái)
     'À': [[0,0,0,1,0],[0,1,0,0,0],[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
-    // Â = A có dấu mũ ^
     'Â': [[0,0,1,0,0],[0,1,0,1,0],[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
-    // Ă = A có dấu breve
     'Ă': [[0,1,0,1,0],[0,0,1,0,0],[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
     ' ': [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]],
   };
 
   const FALLBACK = [[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1]];
 
-  /* Seeded PRNG (xorshift) – cho kết quả ổn định theo seed */
   function makeRand(seed) {
     let s = (seed ^ 0xdeadbeef) >>> 0;
     if (s === 0) s = 1;
@@ -202,14 +322,8 @@ const PixelFont = (() => {
     };
   }
 
-  /* Cache: (char + cell) → lưới dot đã tính trước */
   const _cache = {};
 
-  /**
-   * Tính trước lưới chấm tròn cho một ký tự ở kích thước cell nhất định.
-   * Mỗi "pixel" trong bitmap = 1 chấm tròn hồng sáng rực.
-   * Kết quả được cache – không tính lại mỗi frame → không flickering.
-   */
   function precompute(char, cell, miniChars) {
     const ck  = Math.round(cell);
     const key = char + '|' + ck;
@@ -217,7 +331,6 @@ const PixelFont = (() => {
 
     const map = GLYPHS[char.toUpperCase()] || FALLBACK;
 
-    // Seed cố định theo ký tự + kích thước
     let seedVal = 0;
     for (let i = 0; i < char.length; i++) {
       seedVal += char.charCodeAt(i) * (i + 3) * 17;
@@ -225,19 +338,15 @@ const PixelFont = (() => {
     seedVal += ck * 1009;
     const rand = makeRand(seedVal);
 
-    // Mỗi pixel-block = 1 chấm lớn + vài chấm nhỏ xung quanh
-    // grid[r][c] = [{cx, cy, r, bright}]  hoặc [] nếu pixel tắt
     const dotRadius = cell * 0.42;
     const grid = Array.from({ length: 7 }, (_, r) =>
       Array.from({ length: 5 }, (_, c) => {
         if (!map[r][c]) return [];
         const cx = cell * 0.5;
         const cy = cell * 0.5;
-        // Chấm trung tâm lớn + 2-3 chấm nhỏ xung quanh tạo cảm giác "cụm chấm"
         const items = [
           { cx, cy, dotR: dotRadius, bright: true },
         ];
-        // Thêm 1-2 chấm nhỏ xung quanh để trông dày hơn
         const mini = Math.floor(rand() * 2) + 1;
         for (let m = 0; m < mini; m++) {
           const angle = rand() * Math.PI * 2;
@@ -262,14 +371,9 @@ const PixelFont = (() => {
     return text.length * (5 * cell + gap) - gap;
   }
 
-  /**
-   * Vẽ 1 ký tự lên ctx tại (ox, oy) với alpha cho trước.
-   * Mỗi pixel = cụm chấm tròn hồng rực rỡ trên nền tối.
-   */
   function drawChar(ctx, char, ox, oy, cell, alpha, miniChars) {
     if (alpha <= 0) return;
     const { grid } = precompute(char, cell, miniChars);
-
     ctx.save();
 
     for (let r = 0; r < 7; r++) {
@@ -283,7 +387,6 @@ const PixelFont = (() => {
           const px = bx + cx;
           const py = by + cy;
 
-          // Glow hào quang hồng phía sau – rộng hơn để nổi bật
           const glow = ctx.createRadialGradient(px, py, 0, px, py, dotR * 3.2);
           glow.addColorStop(0,   `rgba(255, 100, 180, ${alpha * (bright ? 0.75 : 0.4)})`);
           glow.addColorStop(1,   `rgba(255, 20, 147, 0)`);
@@ -293,7 +396,6 @@ const PixelFont = (() => {
           ctx.arc(px, py, dotR * 3.2, 0, Math.PI * 2);
           ctx.fill();
 
-          // Chấm tròn chính – gradient hồng sáng → hồng đậm, sáng hơn
           const grad = ctx.createRadialGradient(
             px - dotR * 0.25, py - dotR * 0.25, dotR * 0.05,
             px, py, dotR
@@ -311,7 +413,6 @@ const PixelFont = (() => {
         }
       }
     }
-
     ctx.restore();
   }
 
@@ -325,8 +426,11 @@ const CountdownPhase = (() => {
   let canvas, ctx, drops, raf;
   let digit = '3';
   let alpha = 0;
+  let _inited = false;
 
   function init() {
+    if (_inited) return;
+    _inited = true;
     canvas = document.getElementById('matrixCanvas');
     ctx    = canvas.getContext('2d');
     resize();
@@ -337,7 +441,6 @@ const CountdownPhase = (() => {
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
-    // Xóa canvas khi resize để tránh dải đen
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drops = Matrix.createDrops(canvas);
@@ -353,13 +456,14 @@ const CountdownPhase = (() => {
     if (alpha <= 0) return;
     const W = canvas.width, H = canvas.height;
 
-    // Tạo canvas phụ để lấy pixel của số/chữ (giống code mẫu)
     const textCanvas = document.createElement('canvas');
     const tctx = textCanvas.getContext('2d');
     textCanvas.width  = W;
     textCanvas.height = H;
 
-    const textScale = (digit.length === 1) ? Math.min(W * 0.55, H * 0.55) : Math.min(W * 0.35, H * 0.28);
+    const textScale = (digit.length === 1)
+      ? Math.min(W * 0.55, H * 0.55)
+      : Math.min(W * 0.35, H * 0.28);
     tctx.clearRect(0, 0, W, H);
     tctx.fillStyle = 'white';
     tctx.font = `bold ${textScale}px Arial`;
@@ -368,23 +472,22 @@ const CountdownPhase = (() => {
     tctx.fillText(digit, W / 2, H / 2);
 
     const imgData = tctx.getImageData(0, 0, W, H).data;
-    const gap = 8; // khoảng cách giữa các chấm
+    const gap  = W < 480 ? 6 : 8;
+    const dotR = W < 480 ? 2 : 3;
 
     for (let y = 0; y < H; y += gap) {
       for (let x = 0; x < W; x += gap) {
         const index = (y * W + x) * 4;
         if (imgData[index + 3] > 128) {
-          // Glow hồng phía sau
-          const glow = ctx.createRadialGradient(x, y, 0, x, y, 9);
+          const glow = ctx.createRadialGradient(x, y, 0, x, y, dotR * 3);
           glow.addColorStop(0, `rgba(255,100,180,${alpha * 0.6})`);
           glow.addColorStop(1, 'rgba(255,20,147,0)');
           ctx.fillStyle = glow;
           ctx.beginPath();
-          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.arc(x, y, dotR * 3, 0, Math.PI * 2);
           ctx.fill();
 
-          // Chấm tròn chính màu hồng
-          const grad = ctx.createRadialGradient(x - 1, y - 1, 0.5, x, y, 3);
+          const grad = ctx.createRadialGradient(x - 1, y - 1, 0.5, x, y, dotR);
           grad.addColorStop(0,   '#ffffff');
           grad.addColorStop(0.3, '#ffddee');
           grad.addColorStop(0.7, '#ff4daa');
@@ -392,7 +495,7 @@ const CountdownPhase = (() => {
           ctx.fillStyle   = grad;
           ctx.globalAlpha = alpha;
           ctx.beginPath();
-          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.arc(x, y, dotR, 0, Math.PI * 2);
           ctx.fill();
           ctx.globalAlpha = 1;
         }
@@ -455,9 +558,11 @@ const TextPhase = (() => {
     App.switchScreen('countdown-screen', 'text-screen', () => {
       initBg();
       initAllWords();
-      document.getElementById('bgMusic').play().catch(() => {});
+      // Nhạc đã bật ở GiftPhase.open(), chỉ resume nếu cần
+      const music = document.getElementById('bgMusic');
+      if (music.paused) music.play().catch(() => {});
       scheduleWordDrops();
-    });
+    }, 700);
   }
 
   function initBg() {
@@ -479,14 +584,15 @@ const TextPhase = (() => {
       const chars = [...word];
       const nonSpaceCount = chars.filter(c => c !== ' ').length;
 
-      // cell size: thoả mãn cả chiều cao (1/3 viewport) lẫn chiều rộng
-      const cell = Math.min(
-        Math.floor(rowH * 0.55 / 7),
-        Math.floor(window.innerWidth * 0.85 / (nonSpaceCount * 5.5))
+      const cell = Math.max(
+        Math.min(
+          Math.floor(rowH * 0.55 / 7),
+          Math.floor(window.innerWidth * 0.88 / (nonSpaceCount * 5.6))
+        ),
+        window.innerWidth < 400 ? 5 : 7
       );
       const gap  = Math.floor(cell * 0.6);
 
-      // Tính tổng width canvas
       let totalW = 0;
       chars.forEach(ch => {
         totalW += (ch === ' ' ? 3 * cell : 5 * cell) + gap;
@@ -509,17 +615,14 @@ const TextPhase = (() => {
     const W     = cvs.width;
     const H     = cvs.height;
 
-    // Canvas phụ để scan pixel chữ
     const tCvs  = document.createElement('canvas');
     const tCtx  = tCvs.getContext('2d');
     tCvs.width  = W;
     tCvs.height = H;
 
-    // Tính font size vừa với ô (1/3 viewport height)
     const fontSize = Math.floor(H * 0.72);
-    const dotGap   = 6; // khoảng cách chấm tròn
+    const dotGap   = W < 480 ? 5 : 6;
 
-    // Vẽ sẵn text lên canvas phụ để lấy pixel (stable, không vẽ lại mỗi frame)
     tCtx.clearRect(0, 0, W, H);
     tCtx.fillStyle = 'white';
     tCtx.font = `bold ${fontSize}px Arial`;
@@ -528,7 +631,6 @@ const TextPhase = (() => {
     tCtx.fillText(word, W / 2, H / 2);
     const imgData = tCtx.getImageData(0, 0, W, H).data;
 
-    // Tính alpha tổng hợp cho cả từ (dùng alpha trung bình các chữ)
     const chars = [...word];
 
     (function loop() {
@@ -538,14 +640,12 @@ const TextPhase = (() => {
         s.alpha += (s.target - s.alpha) * 0.08;
       });
 
-      // Alpha tổng = trung bình các chữ
       const avgAlpha = wordStates[wi].reduce((s, c) => s + c.alpha, 0) / wordStates[wi].length;
       if (avgAlpha > 0.005) {
         for (let y = 0; y < H; y += dotGap) {
           for (let x = 0; x < W; x += dotGap) {
             const idx = (y * W + x) * 4;
             if (imgData[idx + 3] > 128) {
-              // Glow
               const glow = ctx.createRadialGradient(x, y, 0, x, y, 8);
               glow.addColorStop(0, `rgba(255,100,180,${avgAlpha * 0.55})`);
               glow.addColorStop(1, 'rgba(255,20,147,0)');
@@ -554,7 +654,6 @@ const TextPhase = (() => {
               ctx.arc(x, y, 8, 0, Math.PI * 2);
               ctx.fill();
 
-              // Chấm chính
               const grad = ctx.createRadialGradient(x - 1, y - 1, 0.3, x, y, 2.5);
               grad.addColorStop(0,   '#ffffff');
               grad.addColorStop(0.3, '#ffddee');
@@ -605,14 +704,12 @@ const TextPhase = (() => {
 const CakePhase = (() => {
   function start() {
     App.switchScreen('text-screen', 'cake-screen', () => {
-      // Ảnh bánh
       const ci = document.getElementById('cakeImg');
       if (CONFIG.cakeImg) ci.src = CONFIG.cakeImg;
       ci.onerror = () => {
         ci.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='300'%3E%3Crect width='380' height='300' fill='%23ffb3d1' rx='18'/%3E%3Ctext x='190' y='150' font-size='90' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%82%3C/text%3E%3Ctext x='190' y='255' font-size='18' text-anchor='middle' fill='%23c71585' font-family='sans-serif' font-weight='bold'%3EChúc mừng sinh nhật Hà Tâm%3C/text%3E%3C/svg%3E";
       };
 
-      // Hạt lấp lánh nền
       const sb = document.getElementById('spBg');
       for (let i = 0; i < 55; i++) {
         const s = document.createElement('div');
@@ -621,7 +718,6 @@ const CakePhase = (() => {
         sb.appendChild(s);
       }
 
-      // Tim bay lên
       const fh = document.getElementById('fhWrap');
       const em = ['💗','💓','💕','💖','🩷','💝'];
       function spawnHeart() {
@@ -634,18 +730,17 @@ const CakePhase = (() => {
       }
       setInterval(spawnHeart, 650);
       spawnHeart();
-    });
+    }, 700);
   }
 
   return { start };
 })();
 
 /* ==========================================================
-   HeartPhase – ảnh xếp thành hình TRÁI TIM – hiệu ứng mượt mà
+   HeartPhase – ảnh xếp thành hình TRÁI TIM
    ========================================================== */
 const HeartPhase = (() => {
 
-  /* Inject CSS keyframes cho animation lắc lư sau khi đặt chỗ */
   (function injectStyles() {
     const st = document.createElement('style');
     st.textContent = `
@@ -682,21 +777,19 @@ const HeartPhase = (() => {
         opacity: 1;
         transform: translateY(0);
       }
-      /* wrapper căn giữa cả tim lẫn caption */
       #heart-wrap {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        max-width: 100vw;
+        max-height: 100vh;
+        overflow: hidden;
       }
     `;
     document.head.appendChild(st);
   })();
 
-  /**
-   * Tính toạ độ 1 điểm trên đường tim tham số
-   * cx,cy = tâm; r = bán kính tham chiếu
-   */
   function heartPt(t, cx, cy, r) {
     const x =  16 * Math.pow(Math.sin(t), 3);
     const y = -(13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t));
@@ -706,26 +799,22 @@ const HeartPhase = (() => {
     };
   }
 
-  /**
-   * Lấy điểm xuất phát ngẫu nhiên từ 1 trong 4 rìa màn hình
-   */
   function edgePt(vw, vh, destLeft, destTop, cellSize) {
     const side = Math.floor(Math.random() * 4);
     let ex, ey;
     switch (side) {
-      case 0: ex = Math.random() * vw;  ey = -cellSize * 2;   break; // trên
-      case 1: ex = vw + cellSize * 2;   ey = Math.random() * vh; break; // phải
-      case 2: ex = Math.random() * vw;  ey = vh + cellSize * 2;  break; // dưới
-      default:ex = -cellSize * 2;       ey = Math.random() * vh; break; // trái
+      case 0: ex = Math.random() * vw;  ey = -cellSize * 2;   break;
+      case 1: ex = vw + cellSize * 2;   ey = Math.random() * vh; break;
+      case 2: ex = Math.random() * vw;  ey = vh + cellSize * 2;  break;
+      default:ex = -cellSize * 2;       ey = Math.random() * vh; break;
     }
     return {
-      tx: ex - destLeft - cellSize / 2,
-      ty: ey - destTop  - cellSize / 2,
+      tx: ex - destLeft  - cellSize / 2,
+      ty: ey - destTop   - cellSize / 2,
     };
   }
 
   function build() {
-    /* ── Dọn sạch container ── */
     const heartScreen = document.getElementById('heart-screen');
     const oldWrap = document.getElementById('heart-wrap');
     if (oldWrap) oldWrap.remove();
@@ -734,31 +823,28 @@ const HeartPhase = (() => {
     const vw      = window.innerWidth;
     const vh      = window.innerHeight;
 
-    /* ── Kích thước ô ảnh: tự co/phóng theo số ảnh để tim vừa màn hình ── */
-    /* Số ô = đúng bằng số ảnh (không lặp lại), giới hạn 20-56 */
     const count = Math.max(20, Math.min(photos.length, 56));
+    const kittyW = vw < 380 ? 0 : vw < 500 ? Math.floor(vw * 0.12) : 100;
 
-    /* cellSize tự điều chỉnh: tim vừa với màn hình */
-    const kittyW   = vw < 500 ? 0 : 100;
+    const cellByVw = Math.floor((vw - kittyW * 2) / 9);
+    const cellByVh = Math.floor(vh / 9.5);
     const maxRadius = Math.min(
-      (vw - kittyW * 2) * 0.42,
-      vh * 0.38,
-      280
+      (vw - kittyW * 2) * 0.44,
+      vh * 0.40,
+      vw < 480 ? 180 : 260
     );
-    /* Chu vi gần đúng → chia cho số ảnh để tính cell phù hợp */
+
     const approxCirc = 2 * Math.PI * maxRadius * 0.88;
     const cellByCount = Math.floor(approxCirc / count * 0.92);
     const cellSize = Math.max(
-      Math.min(cellByCount, Math.floor(vw / 9.5), Math.floor(vh / 9), 88),
-      42
+      Math.min(cellByCount, cellByVw, cellByVh, 88),
+      vw < 380 ? 28 : vw < 480 ? 34 : 42
     );
 
-    /* ── Bọc tim + caption ── */
     const wrap = document.createElement('div');
     wrap.id = 'heart-wrap';
     heartScreen.appendChild(wrap);
 
-    /* ── Container tim ── */
     const cont = document.createElement('div');
     cont.id = 'hc';
     cont.className = 'hc';
@@ -768,45 +854,29 @@ const HeartPhase = (() => {
     const cx    = wrapW / 2;
     const cy    = wrapH / 2 - maxRadius * 0.04;
 
-    cont.style.cssText = `
-      position:relative;
-      width:${wrapW}px;
-      height:${wrapH}px;
-      flex-shrink:0;
-    `;
+    cont.style.cssText = `position:relative;width:${wrapW}px;height:${wrapH}px;flex-shrink:0;`;
     wrap.appendChild(cont);
 
-    /* ── Caption ── */
     const cap = document.createElement('div');
     cap.id = 'heart-caption';
-    cap.textContent = 'Chạm vào hộp quà để mở';
+    cap.textContent = '💗 Sinh nhật vui vẻ Hà Tâm 💗';
     wrap.appendChild(cap);
 
-    /* ── Sinh điểm trên đường cong tim ── */
     const pts = Array.from({ length: count }, (_, i) => {
-      /* offset nhỏ để ảnh không bắt đầu đúng đỉnh tim */
       const t = (i / count) * 2 * Math.PI - Math.PI / 2;
       return heartPt(t, cx, cy, maxRadius);
     });
 
-    /* ── Tạo từng ô ảnh ── */
     pts.forEach((pt, i) => {
       const destLeft = pt.x - cellSize / 2;
       const destTop  = pt.y - cellSize / 2;
-
-      /* Góc nghiêng nhẹ cố định cho từng ảnh */
       const rot = (Math.random() - 0.5) * 18;
-
-      /* Điểm xuất phát từ rìa màn hình */
       const { tx, ty } = edgePt(vw, vh, destLeft, destTop, cellSize);
-
-      /* Góc quay ngẫu nhiên ban đầu khi bay */
       const initRot = (Math.random() - 0.5) * 540;
 
       const d = document.createElement('div');
       d.className = 'hp';
 
-      /* CSS custom property cho float animation */
       d.style.cssText = [
         `left:${destLeft}px`,
         `top:${destTop}px`,
@@ -823,7 +893,6 @@ const HeartPhase = (() => {
         `will-change:transform,opacity`,
       ].join(';');
 
-      /* Mỗi ô dùng đúng 1 ảnh, KHÔNG lặp lại */
       if (i < photos.length) {
         const img = document.createElement('img');
         img.src = photos[i];
@@ -831,7 +900,6 @@ const HeartPhase = (() => {
         img.loading = 'eager';
         d.appendChild(img);
       } else {
-        /* Nếu count > photos.length (hiếm): dùng ô màu gradient đẹp */
         const colors = [
           'linear-gradient(135deg,#ff69b4,#ff1493)',
           'linear-gradient(135deg,#ffb3d1,#ff69b4)',
@@ -846,13 +914,7 @@ const HeartPhase = (() => {
       }
       cont.appendChild(d);
 
-      /*
-       * Delay theo thứ tự + jitter nhỏ
-       * → ảnh đổ vào theo làn sóng chạy quanh tim
-       */
       const delay = 120 + i * 68 + Math.random() * 30;
-
-      /* Bước 1: bay đến đích */
       setTimeout(() => {
         d.style.transition = [
           'opacity 0.55s ease',
@@ -860,8 +922,6 @@ const HeartPhase = (() => {
         ].join(',');
         d.style.opacity   = '1';
         d.style.transform = `rotate(${rot}deg) scale(1)`;
-
-        /* Bước 2: sau khi đặt xong → lắc lư mềm mại */
         setTimeout(() => {
           d.style.transition = '';
           d.classList.add('hp-float');
@@ -869,7 +929,6 @@ const HeartPhase = (() => {
       }, delay);
     });
 
-    /* Caption hiện sau khi tất cả ảnh đã vào */
     const capDelay = 120 + count * 68 + 1100;
     setTimeout(() => cap.classList.add('visible'), capDelay);
   }
@@ -901,8 +960,8 @@ const HeartPhase = (() => {
 const Particles = (() => {
   const COLS = ['#ff4d9e','#ff85c0','#fff','#ffb3d1','#ff1493','#ffaacc'];
 
-  function burst(cx, cy) {
-    for (let i = 0; i < 36; i++) {
+  function burst(cx, cy, count = 36) {
+    for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
       p.className = 'part';
       const a = Math.random() * 2 * Math.PI;
@@ -914,7 +973,7 @@ const Particles = (() => {
   }
 
   function rain() {
-    const rainCols = [...COLS, '#c71585','#ffd6e8'];
+    const rainCols = [...COLS, '#c71585','#ffd6e8','#fff59d'];
     for (let i = 0; i < 75; i++) {
       const c = document.createElement('div');
       c.className = 'conf';
@@ -931,6 +990,6 @@ const Particles = (() => {
    KHỞI ĐỘNG
    ========================================================== */
 window.addEventListener('load', () => {
-  CountdownPhase.init();
-  CountdownPhase.run();
+  // Khởi động màn hộp quà (màn đầu tiên)
+  GiftPhase.init();
 });

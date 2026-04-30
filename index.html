@@ -8,31 +8,67 @@
 </head>
 <body>
 
-  <!-- =====================================================
-       NHẠC NỀN
-       👉 THAY "YOUR_MUSIC_LINK.mp3" BẰNG LINK FILE NHẠC MP3
-          Ví dụ: src="https://drive.google.com/uc?id=FILE_ID"
-               hoặc src="nhac.mp3" nếu để cùng thư mục
-       ===================================================== -->
+  <!-- NHẠC NỀN -->
   <audio id="bgMusic" loop>
     <source src="/Happy Birthday (Piano Version).mp3" type="audio/mpeg" />
   </audio>
 
   <!-- =====================================================
-       MÀN HÌNH 1 – ĐẾM NGƯỢC 3 → 2 → 1
-       Số được vẽ từ các chữ li ti trên canvas
+       MÀN HÌNH 0 – HỘP QUÀ (màn hình đầu tiên)
+       👉 THAY src của #giftGif bằng link GIF hộp quà từ Giphy
+          Ví dụ: src="https://media.giphy.com/media/xxx/giphy.gif"
        ===================================================== -->
-  <div id="countdown-screen" class="screen active">
+  <div id="gift-screen" class="screen active">
+    <!-- Bong bóng trang trí -->
+    <div class="balloon-wrap" id="balloonWrap"></div>
+    <!-- Pháo giấy nền -->
+    <div class="confetti-wrap" id="confettiWrap"></div>
+
+    <!-- Chữ phía trên -->
+    <div class="gift-title" id="giftTitle">
+      <span>🎉</span> Có một điều bất ngờ dành cho bạn <span>🎉</span>
+    </div>
+
+    <!-- Hộp quà GIF – ấn vào để bắt đầu -->
+    <div class="gift-box-wrap" id="giftBoxWrap" onclick="GiftPhase.open()">
+      <!-- ===================================================
+           👉 THAY src DƯỚI ĐÂY BẰNG LINK GIF HỘP QUÀ CỦA BẠN
+              Ví dụ từ Giphy: https://media.giphy.com/media/...gif
+           =================================================== -->
+      <img id="giftGif"
+           src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDFwcmh0YWRvdW92bWxmYndmemd3YzFjY2U5a3g4bno1azZybm50NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/BmSizh311R7yI3M4v9/giphy.gif"
+           alt="Hộp quà" />
+      <div class="gift-pulse-ring"></div>
+    </div>
+
+    <!-- Chữ mời bấm -->
+    <div class="gift-label" id="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3cjFrdDVkZTV1NTE3enM4bWZncXFmbzc2ajZzaXl1ODc3cnMxZnJ1OCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/BmSizh311R7yI3M4v9/giphy.gif">
+      Bấm vào hộp quà để mở 🎀
+    </div>
+
+    <!-- Kitty 4 góc trang trí -->
+    <img class="gift-kitty" style="top:2%;left:2%"
+         src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGdrdTF1emZtd3lremI2bzAxZXA0ZnU1bTR2dHE3NGRhbDZ1a251byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/WOrrqJoBplyOU1QCRn/giphy.gif" alt="kitty" />
+    <img class="gift-kitty" style="top:2%;right:2%"
+         src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeTQyZDFjZGs1ZHgyNWJlcDRiOTQ0b29mdzNjcTBoOWMwY2Vqb3JhcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cqLLVhiJc7t4ZZijyS/giphy.gif" alt="kitty" />
+    <img class="gift-kitty" style="bottom:2%;left:2%"
+         src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXp2YnBkNzhlOG5kbm81MzluaWEzMDU4cmQzYXEzYjdxdDlkZzIyMyZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/hBFR4rbtBBJiE/giphy.gif" alt="kitty" />
+    <img class="gift-kitty" style="bottom:2%;right:2%"
+         src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaW40dXl2bXhhZ28yd3RoNWFncjY4OW9kYXpidjJ1ZGN5Z2VsNjdmcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MBmjxPvh18biwibx1G/giphy.gif" alt="kitty" />
+  </div>
+
+  <!-- =====================================================
+       MÀN HÌNH 1 – ĐẾM NGƯỢC 3 → 2 → 1
+       ===================================================== -->
+  <div id="countdown-screen" class="screen">
     <canvas id="matrixCanvas"></canvas>
   </div>
 
   <!-- =====================================================
        MÀN HÌNH 2 – HIỆN CHỮ HAPPY / BIRTHDAY / HÀ TÂM
-       Mỗi chữ cái được ghép từ ký tự nhỏ li ti trên canvas
        ===================================================== -->
   <div id="text-screen" class="screen">
     <canvas id="textCanvas"></canvas>
-    <!-- 3 canvas để vẽ từng từ bằng pixel-chars -->
     <div class="word-row">
       <canvas id="wordCanvas1" class="word-canvas"></canvas>
     </div>
@@ -51,43 +87,23 @@
     <div class="sp-bg" id="spBg"></div>
     <div class="fh-wrap" id="fhWrap"></div>
 
-    <!-- ===================================================
-         HELLO KITTY TRANG TRÍ 4 GÓC (GIF từ Giphy)
-         👉 Vào https://giphy.com → tìm "Hello Kitty"
-            → chuột phải vào GIF → Copy image address
-            → Dán vào src bên dưới
-         =================================================== -->
-    <!-- 4 kitty góc cố định -->
     <img class="kitty-deco" style="top:3%;left:2%"     src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDFqYWh3Nmh0eHY3anQyaHBhZXc3NWl6aTZ5ODhiN2xpZDVyOXp4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/jpiR29W0Ksmu0jHoQW/giphy.gif" alt="kitty" />
     <img class="kitty-deco" style="top:3%;right:2%"    src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2ZiNjRjdGs1ZWt5bHFwbWNiM2VrdmVvMXhjM3pqanV3cjBqMm04ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/jEGrjimxSiPkWXFlU7/giphy.gif" alt="kitty" />
     <img class="kitty-deco" style="bottom:3%;left:2%"  src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXJycXExMGN2bWJwNnVsdzY3NTQ2dzAybG44enJjaG51ZmdocDdiOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/6ok2rFOweFjlvdcaez/giphy.gif" alt="kitty" />
     <img class="kitty-deco" style="bottom:3%;right:2%" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXR6dTR6NjFiMDRjMXYzNzF2N2k1dWN1amVueDQ0ZTgwY3RyZzZrOCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/10a8AOSeP6Rqfu/giphy.gif" alt="kitty" />
-    <!-- 3 kitty ngẫu nhiên – bạn thay link bên dưới -->
     <img class="kitty-deco kitty-rand" style="top:38%;left:1%"   src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjlic3hlNzZ5NmpoNXdta3JuNGY5ZHBseTRseGhqcjQzZTlld2ZxZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/0tyNsehlBJBjJKQXRo/giphy.gif" alt="kitty" />
     <img class="kitty-deco kitty-rand" style="top:38%;right:1%"  src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXR6dTR6NjFiMDRjMXYzNzF2N2k1dWN1amVueDQ0ZTgwY3RyZzZrOCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/XTpzuhXQOCggM/giphy.gif" />
     <img class="kitty-deco kitty-rand" style="top:72%;left:50%;transform:translateX(-50%)" src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3d3g0aDdmbTdhamxqYm9ib3h5aWxvbm4xNGFxYmpiYms1eWpzd3dwMCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/KgckDLb8Vm40hip2QW/giphy.gif" alt="kitty" />
 
-    <!-- ===================================================
-         KITTY XUNG QUANH BÁNH – 4 vị trí bao quanh
-         👉 THAY src BẰNG LINK GIF HELLO KITTY CỦA BẠN
-         =================================================== -->
-    <!-- Trên bánh (giữa, hơi lệch lên) -->
     <img class="kitty-deco kitty-around" style="top:12%;left:50%;transform:translateX(-50%)"
          src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3bGE5NjM5NmpzYzdzMjBwNWFhYjE3bnFieXVzemYwM3dwMHFxdDh3MyZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/QxppxLafWsyzgMhMsK/giphy.gif" />
-    <!-- Trái bánh (giữa dọc) -->
     <img class="kitty-deco kitty-around" style="top:50%;left:17%;transform:translateY(-50%)"
          src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZGMxcTlyN254aDc1Njh2enhqdTJ5bDloODUwdnpxcmJtb2dkODV4ayZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/hULQny0qPBKIlqsZ5e/giphy.gif" alt="kitty" />
-    <!-- Phải bánh (giữa dọc) -->
     <img class="kitty-deco kitty-around" style="top:50%;right:17%;transform:translateY(-50%)"
          src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZGMxcTlyN254aDc1Njh2enhqdTJ5bDloODUwdnpxcmJtb2dkODV4ayZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/Af5WVSpa9qxnbq8M9T/giphy.gif" alt="kitty" />
 
-    <!-- ===================================================
-         ẢNH BÁNH SINH NHẬT
-         👉 THAY src BẰNG LINK ẢNH BÁNH CỦA BẠN
-            Ví dụ: src="https://i.imgur.com/abc123.png"
-         =================================================== -->
     <img class="cake-img" id="cakeImg"
-         src="/Banh sinh nhat.png"
+         src="/banhsinhnhat.png"
          alt="Bánh sinh nhật Hà Tâm" />
 
     <div class="hbw">
@@ -101,16 +117,8 @@
        ===================================================== -->
   <div id="heart-screen" class="screen">
     <div class="sp-bg" id="spBg2"></div>
-
-    <!-- ===================================================
-         GIF HELLO KITTY BẮN TÊN (2 bên)
-         👉 Vào https://tenor.com → tìm "Hello Kitty cupid"
-            → nhấn vào GIF → Copy Link → dán vào src
-            (Dùng cùng 1 link cho cả 2, ảnh phải tự lật)
-         =================================================== -->
     <img class="ks left"  src="https://media.tenor.com/F0DGMYslawQAAAAm/sanrio.webp" alt="kitty cupid" />
     <img class="ks right" src="https://media.tenor.com/F0DGMYslawQAAAAm/sanrio.webp" alt="kitty cupid" />
-
     <div class="hc" id="hc"></div>
   </div>
 
